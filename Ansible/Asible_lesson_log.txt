@@ -449,3 +449,43 @@ mkdir roles
 
 ansible-galaxy init role_name   -  auto creation structure
 
+в папке roles
+Asible-galaxy role insatall role_name --roles-path /path-to-folder-roles
+
+_______________________________________________
+playbook8
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: loops-roles
+  hosts: all
+  become: yes
+
+  roles:
+    - role1
+    - role2
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+ansible-galaxy role install geerlingguy.mysql  --roles-path /home/admin1/Learn-remove/ansible/roles/
+
+
+ansible-playbook playbook.yml -kK       - запросом пароля 
+
+ansible delegate_to     - указать определенный таски
+
+ansible ignore_errors    - игнроировать ошибки
+
+~~~~~~~~~~~~~~~~~~~~~~
+- name: loops-roles
+  hosts: "{{ host }}"
+  become: yes
+
+  roles:
+    - role1
+    - role2
+
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    ansible-playbook playbook.yml -e host=dev      - указали конкретный хост
+
+ansible -extra-vars
