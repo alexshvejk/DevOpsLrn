@@ -1,0 +1,20 @@
+- name: Printing Variable
+  hosts: all
+  tasks:
+    - include_vars: ./group_vars/var_file.yml
+    - debug:
+         var: my_vars
+
+  tasks:
+    - name: uninstall apache for redhat
+      yum: name=httpd state=absent
+      when: "{{ my_vars }}" == 'text'
+
+    - name: unistall apache for ubuntu
+      apt: name=apachesdfsdfsdfsdf2 state=absent
+      when: "{{ my_vars }}" == 'text'
+      ignore_errors: yes        # для игнора плохой таски
+
+    - name: uninstall apache for ubuntu
+      apt: name=apache2 state=absent
+      when: "{{ my_vars }}" == 'text' 

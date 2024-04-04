@@ -1,0 +1,6 @@
+- hosts: all
+  gather_facts: False
+  tasks:
+    - name: Multiple environment​ variables in a single line ansible task
+      debug:
+        msg: "{{ lookup('env','USER','HOME','SHELL') }}"

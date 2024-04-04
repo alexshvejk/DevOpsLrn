@@ -1,0 +1,6 @@
+my_vars:
+  - test1: 22
+  - test2: 23
+  - test3: 24
+  - text: "text"
+

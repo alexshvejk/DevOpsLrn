@@ -1,0 +1,23 @@
+- name: Run Postgresql container
+  hosts: all
+  gather_facts: no
+  
+  tasks:
+    - name: Start docker service
+        service:
+          name: docker
+          state: started
+ 
+    - name: Create Postgres Container
+        docker_container:
+          name: buts_postgres
+          image: postgres:12
+          state: started
+          recreate: yes
+          ports:
+            - "5432:5432"
+          volumes:
+            - /home/admin1/ansible/anscontdata:/var/lib/postgresql/data
+          env:
+            POSTGRES_USER: "myuser"
+            POSTGRES_PASSWORD: "myuser"
