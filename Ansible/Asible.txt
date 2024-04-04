@@ -1,0 +1,414 @@
+Ansible
+
+Hosts
+~~~~~~~~~~~~~~~~~~~~~~
+aliace_name ansible_host=x.x.x.x  ansible_user=user ansible_ssh_private_key_file=devops.pem
+~~~~~~~~~~~~~~~~~~~~~~
+* ssh ключ должен быть в той же папке где и файл хостс
+
+ad hoc commands
+
+Playbook
+
+
+ansible -i hosts all -m ping
+
+Hosts
+~~~~~~~~~~~~~~~~~~~~~~
+[dev]
+aliace_name ansible_host=x.x.x.x  ansible_user=user ansible_ssh_private_key_file=devops.pem
+[prod]
+aliace_name ansible_host=y.y.y.y  ansible_user=user ansible_ssh_private_key_file=devops.pem
+~~~~~~~~~~~~~~~~~~~~~~
+
+ansible -i hosts dev -m ping
+ansible -i hosts prod -m ping
+
+Ansible config file
+в папке с invetory создать ansible.cfg
+
+ansible.cfg
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[defaults]
+
+host_key_checking = false
+inventory = ./hosts
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+ansible-inventory --list
+
+ansible-inventory --graph
+
+ansible dev -m shell -a "uptime"
+
+__________________________________
+ansible dev_servers -m copy -a 'src=/home/ubuntu/ansible                /hosts dest=/home/ubuntu'
+__________________________________
+
+__________________________________
+chmod 400 ssh_key.pem
+
+
+Playbook
+
+playbook.yml
+~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: test connection
+  hosts: dev
+  
+  tasks: 
+  - name: ping my servers
+    ping:
+	
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ansible-playbook playbook.yml  -  start playbook
+
+
+playbook1.yml
+~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: install stress
+  hosts: dev
+  
+  tasks: 
+  - name: install stress
+    apt: name=stress state=latest
+	
+  - name: insatall
+    ansible.buildin.apt
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+
+playbook3.yml
+~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: create folder
+  hosts: dev
+  
+  tasks:
+    - name:
+	  ansible.buildin.file:
+	  path: /home/ubuntu/lesson16
+	  state: directory
+	  mode: '0755'
+	  
+	- name: change permission
+      ansible.buildin.file:
+	  path: /home/{{ ansible_user}}/lesson16
+	  owner: user
+	  group: usr_group
+	  mode: '0644'
+	  
+	  
+	  
+	  
+_______________________________________________	  
+
+Asible lesson 2
+
+playbook.yml
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: Playbook show vars
+  hosts: all
+  become: yes
+  
+  vars:
+    test1: privet
+	test2: privet
+	password: 12345
+	
+  tasks:
+  - name: print
+	debug:
+	  var: password
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+playbook.yml
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: Playbook show vars
+  hosts: all
+  become: yes
+  
+  vars:
+    test1: privet
+	test2: privet
+	password: 12345
+	
+  tasks:
+  - name: print
+	debug:
+	  var: password
+	  
+  - debug:
+	  msg: "my password {{ password }}"
+	  
+  - set_fact: all_text="{{ text 1}}{{ text2 }}"	
+  
+  - debug:
+      var: all_text
+	  
+  - shell: uptime
+    register: result
+	
+  - debug: result
+      var: result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tasks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- hosts: all
+  gather_facts: False
+  tasks:
+    - name: Multiple environment​ variables in a single line ansible task
+      debug:
+        msg: "{{ lookup('env','USER','HOME','SHELL') }}"
+		
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ansible group vars
+
+mkdir group_vars/  
+file dev.yml
+~~~~~~~~~~~~~~~~~~
+test1: privet
+	test2: privet
+	password: 12345
+	
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+playbook.yml
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: Playbook show vars
+  hosts: all
+  become: yes
+  var_filer:
+    group_vars/dev.yml
+ 
+	
+  tasks:
+  - name: print
+	debug:
+	  var: password
+	  
+  - debug:
+	  msg: "my password {{ password }}"
+	  
+  - set_fact: all_text="{{ text 1}}{{ text2 }}"	
+  
+  - debug:
+      var: all_text
+	  
+  - shell: uptime
+    register: result
+	
+  - debug: result
+      var: result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ansible-playbook playbook.yml -e .......   задать переменную в команде
+_______________________________________________
+
+ansible all -m setup  - gathering facts
+
+playbook3.yml     для выборочной установки
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: install apache
+  hosts: all
+  become: yes
+  
+  tasks:
+  - name: insatall apache for redhat
+    yum: name=httpd state=latest
+	when: ansible_os_family == "RedHat"
+	
+  tasks:
+  - name: insatall apache for ubuntu
+    apt: name=apache2 state=latest
+	when: ansible_os_family == "Debian"
+	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: install apache
+  hosts: all
+  become: yes
+  
+
+  tasks:
+  - name: install apache for redhat
+    yum: name=httpd state=latest
+    when: ansible_os_family == 'RedHat'
+
+  - name: install apache for ubuntu
+    apt: name=apachesdfsdfsdfsdf2 state=latest
+    when: ansible_os_family == 'Debian'
+    ignore_errors: yes        # для игнора плохой таски
+
+  - name: install apache for ubuntu
+    apt: name=apache2 state=latest
+    when: ansible_os_family == 'Debian'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: uninstall apache
+  hosts: all
+  become: yes
+  
+  tasks:
+  - name: unnstall apache for redhat
+    yum: name=httpd state=latest
+    when: ansible_os_family == 'RedHat'
+
+  - name: install apache for ubuntu
+    apt: name=apachesdfsdfsdfsdf2 state=latest
+    when: ansible_os_family == 'Debian'
+    ignore_errors: yes        # для игнора плохой таски
+
+  - name: install apache for ubuntu
+    apt: name=apache2 state=latest
+    when: ansible_os_family == 'Debian'
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- name: install apache
+  hosts: all
+  become: yes
+  ignore_errors: true
+  vars_files:
+    - vars.yaml
+
+  tasks:
+  - name: install apache for redhat
+    yum: name=httpd state=absent
+    when: ansible_os_family == 'RedHat'
+
+  - name: install apache for ubuntu
+    apt: name=apachesdfsdfsdfsdf2 state=absent
+    when: text == 'text'
+
+
+  - name: install apache for ubuntu
+    apt: name=apache2 state=absent
+    when: text == 'text'
+	
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- name: Run Postgresql container
+  hosts: db_farm
+  gather_facts: no
+  
+  tasks:
+    - name: Start docker service
+        service:
+          name: docker
+          state: started
+ 
+    - name: Create Postgres Container
+        docker_container:
+          name: buts_postgres
+          image: postgres:12
+          state: started
+          recreate: yes
+          ports:
+            - "5432:5432"
+          volumes:
+            - /home/admin1/ansible:/var/lib/postgresql/data
+          env:
+            POSTGRES_USER: "myuser"
+            POSTGRES_PASSWORD: "myuser"
+			
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- name: install postgreSQL
+  hosts: all
+  become: yes
+
+  tasks:
+  - name: Create db container
+    community.docker.docker_container:
+      name: db_test
+      image: "postgres:latest"
+      state: started
+      recreate: yes
+      ports:
+        - "5432:5432"
+      env:
+        POSTGRES_USER: "postgres"
+        POSTGRES_PASSWORD: "postgres"
+		
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- name: Установка и запуск PostgreSQL в Docker контейнере
+  hosts: all
+  become: yes
+  tasks:
+    - name: Установка необходимых пакетов
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Добавление официального GPG ключа
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Добавление репозитория
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+- name: Установка
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+
+    - name: Работает ли сервис
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Запуск контейнера PostgreSQL
+      community.docker.docker_container:
+community.docker.docker_container:
+        name: postgres_container
+        image: postgres:latest
+        restart_policy: always
+        env:
+          POSTGRES_PASSWORD: "1234567"
+          POSTGRES_USER: "matbos"
+          POSTGRES_DB: "matboss_db"
+        ports:
+          - "5432:5432"
+		  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Ansible dynamic inventory
+
+_______________________________________________
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- name: Создание EC2 инстанса в AWS
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Создание инстанса
+      amazon.aws.ec2_instance:
+        name: "MATBOSS"
+        instance_type: t3.micro
+        image_id: "ami-080e1f13689e07408"
+        region: "us-east-1"
+        key_name: "devops"
+        security_group: "lesson10"
+        wait: true
+        tags:
+          Purpose: "test-instance"
+      register: "ec2"
+	  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+
+https://medium.com/@a_tsai5/creating-an-ec2-instance-using-ansible-764cf70015f6
